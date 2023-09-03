@@ -17,30 +17,7 @@ def imread(filename):
         im = np.uint8(255 * im)
     if len(im.shape) >= 3 and im.shape[2] > 3:
         im = im[:, :, 0:3]
-    print(im)
     return im
-
-
-# a) Abra uma imagem colorida e a exiba usando o Python Shell.
-def openIMG(filename):
-    im = Image.open(filename)
-    im.show()
-
-
-# b) Abra uma imagem em escala de cinza e a exiba usando o Python Shell.
-def openIMG_gray(filename):
-    im = Image.open(filename).convert("L")
-    im.show()
-
-
-# c) Abra uma imagem pequena, com até 50 pixels de lado, e a exiba usando o Python Shell.
-def open_small_image(filename):
-    im = Image.open(filename)
-    width, height = im.size
-    if width > 50 or height > 50:
-        max_size = (50, 50)
-        im.thumbnail(max_size)
-    im.show()
 
 
 """
@@ -51,17 +28,20 @@ pequenas
 """
 
 
-def imshow(filename):
-    def imshow_aux(im):
-        if im.mode == "L":
-            mp.imshow(im, cmpa="gray", interpolation="nearest")
-        else:
-            mp.imshow(im, interpolation="nearest")
-        mp.axis("off")
-        mp.show()
+def imshow(im):
+    plot = mp.imshow(im, cmap=mp.gray(), origin="upper")
+    plot.set_interpolation('nearest')
+    mp.show()
 
-    imshow_aux(Image.open(filename))
 
+def aux_show(filename):
+    imshow(imread(filename))
+
+'''
+a)aux_show("lena/lena_std.png")
+b)aux_show("lena/lena_gray.png")
+c)aux_show("lena/lena_25_eye.png")
+'''
 
 """
 1 - Crie uma função chamada nchannels que retorna o número de canais da imagem de
@@ -71,10 +51,12 @@ entrada.
 
 # Dúvida
 def nchannels(filename):
-    im = Image.open(filename)
-    channels = len(im.getbands())
-    print(channels)
-    return channels
+    im = imread(filename)
+    i = im.shape
+    return i[2] if len(i) == 3 else 1 if len(i) == 2 else 0 
+
+# print(nchannels("lena/lena_std.png"))
+# print(nchannels("lena/lena_gray.png"))
 
 
 """
@@ -84,12 +66,12 @@ e a segunda é a altura em pixels da imagem de entrada.
 
 
 def size(filename):
-    im = Image.open(filename)
-    wid, hei = im.size
-    out = [wid, hei]
-    print(out)
-    return out
+    im = imread(filename)
+    return im.shape[:2]
 
+# print(size("lena/lena_std.png"))
+# print(size("lena/lena_gray.png"))
+# print(size("lena/lena_25_eye.png"))
 
 """
 3 - Crie uma função chamada rgb2gray, que recebe uma imagem RGB e retorna outra
@@ -100,68 +82,24 @@ ATENÇÃO: verifique se a imagem de entrada permanece inalterada após o términ
 execução.
 """
 
-
-# Dúvida
 def rgb2gray(filename):
-    im = Image.open(filename)
-    im_gray = Image.new("L", im.size)
+    im = imread(filename)
+    gray = np.dot(im[...,:3], [0.299,0.587,0.114])
+    gray = gray.astype(np.uint8)
+    return gray
 
-    pixels_im = im.load()
-    pixels_im_g = im_gray.load()
-
-    for x in range(im.width):
-        for y in range(im.height):
-            print(pixels_im[x, y])
-            r, g, b = pixels_im[x, y]
-            in_gray = int(0.299 * r + 0.587 * g + 0.114 * b)
-            pixels_im_g[x, y] = in_gray
-    im_gray.show()
-    return im_gray
-
-
-rgb2gray("rgb.png")
-# img de teste
-i32 = np.array([[1.0, 0.2, 0.56], [0.87, 0.75, 0.98]])
-i8 = np.array([[255, 0, 1], [254, 2, 255], [255, 12, 250]])
+# imshow(rgb2gray("lena/lena_std.png"))
+# aux_show("lena/lena_std.png")
 
 """
-3 - Seja img uma imagem do tipo ndarray, com pixels de tipo float32 no intervalo [0.0, 1.0]. Escreva uma
-linha de código em Python que converta seus pixels para o tipo uint8 no intervalo [0, 255].
+4 - Crie uma função chamada imreadgray, que recebe um nome de arquivo e retorna a 
+imagem lida em escala de cinza. Deve funcionar com imagens de entrada RGB e escala de 
+cinza.
 """
+def imreadgray(filename):
+    im = imread(filename)
+    return im if nchannels(filename) == 2 else rgb2gray(filename)
+     
 
-
-def normalize(I):
-    out = (I * 255).astype(np.uint8)
-    print(out)
-    return out
-
-
-"""
-4 - Seja img uma imagem do tipo ndarray, com pixels de tipo uint8. Escreva uma linha de código em Python
-que encontre sua negativa.
-"""
-
-
-def negative(I):
-    out = 256 - I - 1
-    print(out)
-    return out
-
-
-"""
-5 - Considere o código em Python abaixo. Insira código no lugar das reticências para fazer a saturação em 0 e
-255, e converter para uint8.
-"""
-
-
-def contrast(im, r, m):
-    result = r * (im - m) + m
-    # im = 0 if im <= 0
-    # im = 255 if im >= 255
-    # print(result)
-    return result
-
-
-# normalize(i32)
-# print("\n\n\n")
-# negative(i8)
+# print(imreadgray("lena/lena_gray.png"))
+# print(imreadgray("lena/lena_std.png"))
